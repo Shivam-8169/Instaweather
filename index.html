@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InstaWeather</title>
+  <style>
+    /* Made by Shivam Sharma */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 40px 20px;
+      text-align: center;
+      transition: background-color 0.4s, color 0.4s;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 0.2em;
+    }
+
+    .tagline {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      margin-bottom: 2em;
+    }
+
+    .controls {
+      margin-bottom: 2em;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      margin-right: 10px;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #themeToggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: transparent;
+      font-size: 20px;
+    }
+
+    .weather-info {
+      display: none;
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 12px;
+      min-width: 260px;
+      display: inline-block;
+      text-align: left;
+    }
+
+    .weather-info img {
+      width: 64px;
+      height: 64px;
+    }
+
+    .weather-info p {
+      margin: 5px 0;
+      font-size: 16px;
+    }
+
+    .error {
+      margin-top: 20px;
+      color: #ff5252;
+      font-weight: 500;
+    }
+
+    footer {
+      margin-top: 60px;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    /* Light mode */
+    body.light {
+      background: linear-gradient(to right, #dfe9f3, #ffffff);
+      color: #111;
+    }
+
+    body.light input[type="text"] {
+      background: #fff;
+      color: #000;
+    }
+
+    body.light button {
+      background-color: #ffffff;
+      color: #000;
+    }
+
+    body.light .weather-info {
+      background-color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Dark mode */
+    body.dark {
+      background: linear-gradient(to right, #141e30, #243b55);
+      color: #fff;
+    }
+
+    body.dark input[type="text"] {
+      background: #333;
+      color: #fff;
+    }
+
+    body.dark button {
+      background-color: #444;
+      color: #fff;
+    }
+
+    body.dark .weather-info {
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    @media screen and (max-width: 500px) {
+      input[type="text"] {
+        width: 80%;
+        margin-bottom: 10px;
+      }
+
+      .controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body class="light">
+  <button id="themeToggle" onclick="toggleTheme()">🌙</button>
+
+  <h1>InstaWeather</h1>
+  <p class="tagline">Live weather updates, anywhere in the world</p>
+
+  <div class="controls">
+    <input type="text" id="locationInput" placeholder="Enter a city (e.g., Mumbai)" />
+    <button onclick="getWeather()">Get Weather</button>
+  </div>
+
+  <div class="weather-info" id="weatherResult">
+    <h2 id="cityName"></h2>
+    <img id="weatherIcon" src="" alt="Weather Icon" />
+    <p id="temperature"></p>
+    <p id="condition"></p>
+    <p id="humidity"></p>
+    <p id="wind"></p>
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <footer>Made with ☁ by Shivam Sharma © 2025</footer>
+
+  <script>
+    const apiKey = "913284046be24afd9dd184718250208";
+
+    // Set theme on page load
+    window.onload = () => {
+      const savedTheme = localStorage.getItem("theme") || "light";
+      document.body.className = savedTheme;
+      updateToggleIcon(savedTheme);
+    };
+
+    function toggleTheme() {
+      const current = document.body.classList.contains("dark") ? "dark" : "light";
+      const next = current === "dark" ? "light" : "dark";
+      document.body.className = next;
+      localStorage.setItem("theme", next);
+      updateToggleIcon(next);
+    }
+
+    function updateToggleIcon(theme) {
+      document.getElementById("themeToggle").textContent = theme === "dark" ? "☀️" : "🌙";
+    }
+
+    async function getWeather() {
+      const location = document.getElementById("locationInput").value.trim();
+      const resultBox = document.getElementById("weatherResult");
+      const errorBox = document.getElementById("error");
+
+      if (!location) {
+        errorBox.textContent = "Please enter a location.";
+        resultBox.style.display = "none";
+        return;
+      }
+
+      const apiUrl = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`;
+
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error.message);
+
+        // Display data
+        document.getElementById("cityName").textContent = `${data.location.name}, ${data.location.country}`;
+        document.getElementById("temperature").textContent = `🌡 Temperature: ${data.current.temp_c}°C`;
+        document.getElementById("condition").textContent = `🌥 Condition: ${data.current.condition.text}`;
+        document.getElementById("humidity").textContent = `💧 Humidity: ${data.current.humidity}%`;
+        document.getElementById("wind").textContent = `💨 Wind: ${data.current.wind_kph} km/h`;
+        document.getElementById("weatherIcon").src = "https:" + data.current.condition.icon;
+
+        resultBox.style.display = "block";
+        errorBox.textContent = "";
+      } catch (err) {
+        resultBox.style.display = "none";
+        errorBox.textContent = "Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InstaWeather</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    /* your CSS */
+  </style>
+</head>
+<body>
+  <button id="themeToggle" onclick="toggleTheme()">🌙</button>
+
+  <h1>
+    <img src="https://img.icons8.com/fluency/48/000000/weather.png" alt="Weather icon" style="vertical-align: middle; margin-right: 10px;">
+    InstaWeather
+  </h1>
+  <p class="tagline">Live weather updates, anywhere in the world</p>
