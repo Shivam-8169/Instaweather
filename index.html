@@ -165,63 +165,72 @@
 
   <footer>Made with ☁ by Shivam Sharma © 2025</footer>
 
-  <script>
-    const apiKey = "913284046be24afd9dd184718250208";
+ <script>
+  const apiKey = "913284046be24afd9dd184718250208";
 
-    // Set theme on page load
-    window.onload = () => {
-      const savedTheme = localStorage.getItem("theme") || "light";
-      document.body.className = savedTheme;
-      updateToggleIcon(savedTheme);
-    };
+  
+  window.onload = () => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.body.className = savedTheme;
+    updateToggleIcon(savedTheme);
+  };
 
-    function toggleTheme() {
-      const current = document.body.classList.contains("dark") ? "dark" : "light";
-      const next = current === "dark" ? "light" : "dark";
-      document.body.className = next;
-      localStorage.setItem("theme", next);
-      updateToggleIcon(next);
+  function toggleTheme() {
+    const current = document.body.classList.contains("dark") ? "dark" : "light";
+    const next = current === "dark" ? "light" : "dark";
+    document.body.className = next;
+    localStorage.setItem("theme", next);
+    updateToggleIcon(next);
+  }
+
+  function updateToggleIcon(theme) {
+    document.getElementById("themeToggle").textContent = theme === "dark" ? "☀️" : "🌙";
+  }
+
+  async function getWeather() {
+    const location = document.getElementById("locationInput").value.trim();
+    const resultBox = document.getElementById("weatherResult");
+    const errorBox = document.getElementById("error");
+
+    if (!location) {
+      errorBox.textContent = "❗ Please enter a location.";
+      resultBox.style.display = "none";
+      return;
     }
 
-    function updateToggleIcon(theme) {
-      document.getElementById("themeToggle").textContent = theme === "dark" ? "☀️" : "🌙";
-    }
+    
+    const apiUrl = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`;
 
-    async function getWeather() {
-      const location = document.getElementById("locationInput").value.trim();
-      const resultBox = document.getElementById("weatherResult");
-      const errorBox = document.getElementById("error");
+    try {
+      const response = await fetch(apiUrl);
 
-      if (!location) {
-        errorBox.textContent = "Please enter a location.";
-        resultBox.style.display = "none";
-        return;
+      if (!response.ok) {
+        throw new Error("Network response was not OK.");
       }
 
-      const apiUrl = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`;
+      const data = await response.json();
 
-      try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-
-        if (data.error) throw new Error(data.error.message);
-
-        // Display data
-        document.getElementById("cityName").textContent = `${data.location.name}, ${data.location.country}`;
-        document.getElementById("temperature").textContent = `🌡 Temperature: ${data.current.temp_c}°C`;
-        document.getElementById("condition").textContent = `🌥 Condition: ${data.current.condition.text}`;
-        document.getElementById("humidity").textContent = `💧 Humidity: ${data.current.humidity}%`;
-        document.getElementById("wind").textContent = `💨 Wind: ${data.current.wind_kph} km/h`;
-        document.getElementById("weatherIcon").src = "https:" + data.current.condition.icon;
-
-        resultBox.style.display = "block";
-        errorBox.textContent = "";
-      } catch (err) {
-        resultBox.style.display = "none";
-        errorBox.textContent = "Error: " + err.message;
+      if (data.error) {
+        throw new Error(data.error.message);
       }
+
+      
+      document.getElementById("cityName").textContent = `${data.location.name}, ${data.location.country}`;
+      document.getElementById("temperature").textContent = `🌡 Temperature: ${data.current.temp_c}°C`;
+      document.getElementById("condition").textContent = `🌥 Condition: ${data.current.condition.text}`;
+      document.getElementById("humidity").textContent = `💧 Humidity: ${data.current.humidity}%`;
+      document.getElementById("wind").textContent = `💨 Wind: ${data.current.wind_kph} km/h`;
+      document.getElementById("weatherIcon").src = "https:" + data.current.condition.icon;
+
+      resultBox.style.display = "block";
+      errorBox.textContent = ""; // Clear error
+    } catch (err) {
+      resultBox.style.display = "none";
+      errorBox.textContent = `⚠️ Error: ${err.message}`;
     }
-  </script>
+  }
+</script>
+
 </body>
 </html>
 <head>
